@@ -5,12 +5,12 @@ import configparser
 from pynput.keyboard import Key, HotKey, Listener, Controller
 import argparse
 from os.path import isfile
-import pandas as pd
 from threading import Thread
 import libusb_package
 import usb.core
 import usb.backend.libusb1
 import time
+from math import ceil
 
 global jogando
 
@@ -70,6 +70,8 @@ class Janela:
                     thread_memoria = Thread(target=self.freio_de_mao)
                     jogando = True
                     thread_memoria.start()
+                    self.window.close()
+                    self.window = sg.Window('Hand Break', self.get_layout(), finalize=True)
                 elif event == 'botao':
                     self.window['texto_botao'].update('Digite uma Tecla')
                     self.window.refresh()
@@ -107,7 +109,7 @@ class Janela:
             [sg.Text('Bytes', size=label_size), sg.InputText(self.bytes, size=input_size)],
             [sg.Text('Zona Morta', size=label_size), sg.InputText(default_text=self.zona_morta, size=input_size)],
             [sg.Text('Erro', size=label_size), sg.InputText(self.erro, size=input_size)],
-            [sg.Text('Leitura', size=label_size), sg.ProgressBar(max_value=255, orientation='h', size=(27.25, 18), border_width=sg.DEFAULT_BORDER_WIDTH, key='freio_de_mao')],
+            [sg.Text('Leitura', size=label_size), sg.ProgressBar(max_value=self.zona_morta, orientation='h', size=(27.25*self.zona_morta/255, 18), border_width=sg.DEFAULT_BORDER_WIDTH, bar_color=('#F46380', '#E6D3A8'), key='zona_morta', pad=((5, 0), (3, 3))),sg.ProgressBar(max_value=255-self.zona_morta, orientation='h', size=(27.25*(1-self.zona_morta/255), 18), border_width=sg.DEFAULT_BORDER_WIDTH, bar_color=('#046380', '#E6D3A8'), key='freio_de_mao', pad=((0, 5), (3, 3)))],
             [sg.Submit('Salvar Alterações'), sg.Cancel('Parar')]
         ]
         return layout
@@ -138,24 +140,29 @@ class Janela:
             endpoint_address = endpoint.bEndpointAddress
             logging.info(f"Conectado ao dispositivo na Vendor ID: {self.vendor_id}, Product ID: {self.product_id}, Interface {interface}")
             apertado = False
-            data = pd.DataFrame()
             logging.info('Escutando o dispositivo')
             teclado = Controller()
             intensidade = 0
             while jogando:
-                data_raw = self.devices.read(endpoint_address, self.bytes)
+                try:
+                    data_raw = self.devices.read(endpoint_address, self.bytes)
+                except:
+                    continue
                 if data_raw[5] != 0 and intensidade >= data_raw[5] - self.erro and intensidade <= data_raw[5] + self.erro:
                     continue
                 intensidade = data_raw[5]
-                self.window['freio_de_mao'].update(current_count=intensidade)
+                if intensidade <= self.zona_morta:
+                    self.window['zona_morta'].update(current_count=intensidade)
+                    self.window['freio_de_mao'].update(current_count=0)
+                else:
+                    self.window['zona_morta'].update(current_count=self.zona_morta)
+                    self.window['freio_de_mao'].update(current_count=intensidade - self.zona_morta)
                 if not apertado and intensidade >= self.zona_morta:
                     teclado.press(self.key)
                     apertado = True
-                    self.window['freio_de_mao'].update(bar_color=('#046380', '#E6D3A8'))
                 elif apertado and intensidade <= self.zona_morta - self.erro:
                     teclado.release(self.key)
                     apertado = False
-                    self.window['freio_de_mao'].update(bar_color=('#046380', '#E6D3A8'))
 
 if __name__ == '__main__':
     global jogando

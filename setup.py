@@ -4,9 +4,13 @@ base = None
 
 executables = [Executable("HandBrake.py", base=base)]
 
-packages = ['idna', 'PySimpleGUI', 'logging', 'logging.config', 'configparser', 'pynput', 'argparse', 'os', 'pandas', 'threading', 'libusb_package', 'usb.core', 'usb.backend.libusb1', 'time']
+packages = ['idna', 'PySimpleGUI', 'logging', 'logging.config', 'configparser', 'pynput', 'argparse', 'os',
+            'threading', 'libusb_package', 'usb.core', 'usb.backend.libusb1', 'time', 'math']
 options = {
     'build_exe': {
+        'include_files': [
+            'logger.ini'
+        ],
         'packages': packages,
     },
 }
