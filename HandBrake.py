@@ -10,7 +10,6 @@ import libusb_package
 import usb.core
 import usb.backend.libusb1
 import time
-from math import ceil
 
 global jogando
 
