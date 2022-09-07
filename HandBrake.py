@@ -14,6 +14,7 @@ import time
 
 global jogando
 
+
 class Dispositivo:
 
     def __init__(self, product, manufacturer=None, hid=None):
@@ -75,8 +76,10 @@ class Dispositivo:
     def __str__(self):
         return self.product + ' ' + (str(self.hid) if self.hid else '') + ' ' + str(self.endpoint_address)
 
+
 class Janela:
     def __init__(self, config_ini, logger_ini):
+        self.devices = None
         self.config_ini = config_ini
         self.config = configparser.ConfigParser(allow_no_value=True)
         self.config.read(config_ini, encoding='utf-8-sig')
@@ -102,7 +105,7 @@ class Janela:
         for device in devices:
             for configuration in device.configurations():
                 for interface in configuration.interfaces():
-                    if interface.bInterfaceClass == 0x3: #Human Interface Device
+                    if interface.bInterfaceClass == 0x3:  # Human Interface Device
                         for endpoint in interface.endpoints():
                             dispositivo = Dispositivo(device.product, device.manufacturer, interface.bInterfaceNumber)
                             dispositivo.set_id_vendor(device.idVendor)
@@ -111,7 +114,9 @@ class Janela:
                             dispositivo.set_endpoint_address(endpoint.bEndpointAddress)
                             dispositivo.set_bytes(device.bLength)
                             self.dispositivos.append(dispositivo)
-                            if dispositivo.get_id_vendor() == id_vendor and dispositivo.get_id_product() == id_product and dispositivo.get_hid() == hid and dispositivo.get_endpoint_address() == endpoint_address:
+                            if dispositivo.get_id_vendor() == id_vendor and dispositivo.get_id_product() == id_product \
+                                    and dispositivo.get_hid() == hid \
+                                    and dispositivo.get_endpoint_address() == endpoint_address:
                                 logging.info(f'Dispositivo anterior encontrado: {dispositivo.get_product()}')
                                 self.dispositivo = dispositivo
 
@@ -179,11 +184,21 @@ class Janela:
         input_size = (50, 1)
         layout = [
             [sg.Text('Configuração do Freio de Mão')],
-            [sg.Text('Botão', size=label_size), sg.InputText(self.botao, readonly=True, key='texto_botao', size=(40, 1)), sg.Button('Trocar', key='botao', size=(6, 1))],
-            [sg.Text('Dispositivo', size=label_size), sg.InputCombo(values=self.dispositivos, default_value=self.dispositivo, size=input_size)],
+            [sg.Text('Botão', size=label_size),
+             sg.InputText(self.botao, readonly=True, key='texto_botao', size=(40, 1)),
+             sg.Button('Trocar', key='botao', size=(6, 1))],
+            [sg.Text('Dispositivo', size=label_size),
+             sg.InputCombo(values=self.dispositivos, default_value=self.dispositivo, size=input_size)],
             [sg.Text('Zona Morta', size=label_size), sg.InputText(default_text=self.zona_morta, size=input_size)],
             [sg.Text('Erro', size=label_size), sg.InputText(self.erro, size=input_size)],
-            [sg.Text('Leitura', size=label_size), sg.ProgressBar(max_value=self.zona_morta, orientation='h', size=(27.25*self.zona_morta/255, 18), border_width=sg.DEFAULT_BORDER_WIDTH, bar_color=('#F46380', '#E6D3A8'), key='zona_morta', pad=((5, 0), (3, 3))),sg.ProgressBar(max_value=255-self.zona_morta, orientation='h', size=(27.25*(1-self.zona_morta/255), 18), border_width=sg.DEFAULT_BORDER_WIDTH, bar_color=('#046380', '#E6D3A8'), key='freio_de_mao', pad=((0, 5), (3, 3)))],
+            [sg.Text('Leitura', size=label_size),
+             sg.ProgressBar(max_value=self.zona_morta, orientation='h', size=(27.25 * self.zona_morta / 255, 18),
+                            border_width=sg.DEFAULT_BORDER_WIDTH, bar_color=('#F46380', '#E6D3A8'), key='zona_morta',
+                            pad=((5, 0), (3, 3))), sg.ProgressBar(max_value=255 - self.zona_morta, orientation='h',
+                                                                  size=(27.25 * (1 - self.zona_morta / 255), 18),
+                                                                  border_width=sg.DEFAULT_BORDER_WIDTH,
+                                                                  bar_color=('#046380', '#E6D3A8'), key='freio_de_mao',
+                                                                  pad=((0, 5), (3, 3)))],
             [sg.Submit('Salvar Alterações'), sg.Cancel('Parar')]
         ]
         return layout
@@ -202,7 +217,8 @@ class Janela:
     def freio_de_mao(self):
         global jogando
         libusb1_backend = usb.backend.libusb1.get_backend(find_library=libusb_package.find_library)
-        self.devices = usb.core.find(idVendor=int(self.dispositivo.get_id_vendor(), base=16), idProduct=int(self.dispositivo.get_id_product(), base=16), backend=libusb1_backend)
+        self.devices = usb.core.find(idVendor=int(self.dispositivo.get_id_vendor(), base=16),
+                                     idProduct=int(self.dispositivo.get_id_product(), base=16), backend=libusb1_backend)
         if self.devices is None:
             jogando = False
             return
@@ -222,7 +238,7 @@ class Janela:
                     data_raw = self.devices.read(endpoint_address, bytes)
                 except:
                     continue
-                if data_raw[5] != 0 and intensidade >= data_raw[5] - self.erro and intensidade <= data_raw[5] + self.erro:
+                if data_raw[5] != 0 and data_raw[5] - self.erro <= intensidade <= data_raw[5] + self.erro:
                     continue
                 intensidade = data_raw[5]
                 if intensidade <= self.zona_morta:
@@ -238,6 +254,7 @@ class Janela:
                     teclado.release(self.key)
                     apertado = False
 
+
 if __name__ == '__main__':
     global jogando
     jogando = True
@@ -248,10 +265,10 @@ if __name__ == '__main__':
     config_ini = args.config
     config_ini = config_ini if config_ini else 'config.ini'
     if not isfile(config_ini):
-        raise(f'Arquivo de configuração não encontrado em {config_ini}')
+        raise f'Arquivo de configuração não encontrado em {config_ini}'
     logger_ini = args.logger
     logger_ini = logger_ini if logger_ini else 'logger.ini'
     if not isfile(logger_ini):
-        raise(f'Arquivo de configuração não encontrado em {logger_ini}')
+        raise f'Arquivo de configuração não encontrado em {logger_ini}'
     janela = Janela(config_ini, logger_ini)
     janela.iniciar()
