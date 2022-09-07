@@ -1,2 +1,3 @@
 pysimplegui~=4.60.3
 pynput~=1.7.6
+pyusb~=1.2.1
