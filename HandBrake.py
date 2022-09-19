@@ -80,6 +80,7 @@ class Dispositivo:
 class Janela:
     def __init__(self, config_ini, logger_ini):
         self.devices = None
+        self.intensidade = 0
         self.config_ini = config_ini
         self.config = configparser.ConfigParser(allow_no_value=True)
         self.config.read(config_ini, encoding='utf-8-sig')
@@ -141,7 +142,7 @@ class Janela:
                     self.erro = int(values[2])
                     self.config['config']['id_vendor'] = str(self.dispositivo.get_id_vendor())
                     self.config['config']['id_product'] = str(self.dispositivo.get_id_product())
-                    self.config['config']['hid  '] = str(self.dispositivo.get_hid())
+                    self.config['config']['hid'] = str(self.dispositivo.get_hid())
                     self.config['config']['zona_morta'] = str(values[1])
                     self.config['config']['erro'] = str(values[2])
                     with open(self.config_ini, 'w', encoding='utf-8-sig') as file:
@@ -191,7 +192,8 @@ class Janela:
              sg.InputCombo(values=self.dispositivos, default_value=self.dispositivo, size=input_size)],
             [sg.Text('Zona Morta', size=label_size), sg.InputText(default_text=self.zona_morta, size=input_size)],
             [sg.Text('Erro', size=label_size), sg.InputText(self.erro, size=input_size)],
-            [sg.Text('Leitura', size=label_size),
+            [sg.Text('Leitura', size=label_size), sg.InputText(default_text=self.intensidade, size=input_size, key='freio_de_mao_txt')],
+            [sg.Text('', size=label_size),
              sg.ProgressBar(max_value=self.zona_morta, orientation='h', size=(27.25 * self.zona_morta / 255, 18),
                             border_width=sg.DEFAULT_BORDER_WIDTH, bar_color=('#F46380', '#E6D3A8'), key='zona_morta',
                             pad=((5, 0), (3, 3))), sg.ProgressBar(max_value=255 - self.zona_morta, orientation='h',
@@ -232,27 +234,29 @@ class Janela:
             apertado = False
             logging.info('Escutando o dispositivo')
             teclado = Controller()
-            intensidade = 0
+            self.intensidade = 0
             while jogando:
                 try:
                     data_raw = self.devices.read(endpoint_address, bytes)
                 except:
                     continue
-                if data_raw[5] != 0 and data_raw[5] - self.erro <= intensidade <= data_raw[5] + self.erro:
+                if data_raw[5] != 0 and data_raw[5] - self.erro <= self.intensidade <= data_raw[5] + self.erro:
                     continue
-                intensidade = data_raw[5]
-                if intensidade <= self.zona_morta:
-                    self.window['zona_morta'].update(current_count=intensidade)
+                self.intensidade = data_raw[5]
+                self.window['freio_de_mao_txt'].update(self.intensidade)
+                if self.intensidade <= self.zona_morta:
+                    self.window['zona_morta'].update(current_count=self.intensidade)
                     self.window['freio_de_mao'].update(current_count=0)
                 else:
                     self.window['zona_morta'].update(current_count=self.zona_morta)
-                    self.window['freio_de_mao'].update(current_count=intensidade - self.zona_morta)
-                if not apertado and intensidade >= self.zona_morta:
+                    self.window['freio_de_mao'].update(current_count=self.intensidade - self.zona_morta)
+                if not apertado and self.intensidade >= self.zona_morta:
                     teclado.press(self.key)
                     apertado = True
-                elif apertado and intensidade <= self.zona_morta - self.erro:
+                elif apertado and self.intensidade <= self.zona_morta - self.erro:
                     teclado.release(self.key)
                     apertado = False
+                self.window.refresh()
 
 
 if __name__ == '__main__':
