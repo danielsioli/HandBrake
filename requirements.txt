@@ -1,4 +1,4 @@
 pysimplegui~=4.60.3
 pynput~=1.7.6
 pyusb~=1.2.1
-libusb_package=1.0.26.0
+libusb_package~=1.0.26.0
