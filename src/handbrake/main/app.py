@@ -358,7 +358,6 @@ class Janela:
             # output = []
             próxima_atualização_gráfico = 0
             while jogando:
-                # try:
                 data_raw = self.devices.read(endpoint_address, bytes)
                 # output.append(";".join([str(d) for d in data_raw]))
                 intensidade = data_raw[-1]
