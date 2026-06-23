@@ -1,0 +1,28 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+builds/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+.pixi
+
+# Adicionais
+token.json
+.vs
+htmlcov
+.env
+grafo.*
+*.lock
+log_chart.png
+data/
+.vscode
+GEMINI.md
+**/tests.db
+**/.github
+teste.ipynb
+.coverage

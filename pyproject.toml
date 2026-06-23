@@ -1,0 +1,141 @@
+[project]
+name = "Handbrake"
+version = "0.0.1"
+description = "Script para ler a entrada do dispositivo de Freio de Mão na porta USB e retornar o evento de uma tecla apertada"
+keywords = ["game", "videogame", "input", "handbrake"]
+authors = [
+    { name = "Daniel da Silva Oliveira", email = "danielsioli@gmail.com" },
+]
+license = { text = "MIT" }
+classifiers = [
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent",
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Database",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Natural Language :: Portuguese (Brazilian)",
+]
+readme = "README.md"
+requires-python = ">=3.13, <=3.15"
+dependencies = ["pynput", "pyusb", "libusb_package"]
+
+[dependency-groups]
+dev = [
+    "jupyterlab>=4.5.8",
+    "ipykernel>=6.29.5",
+    "ipywidgets>=8.1.7",
+    "matplotlib>=3.10.9",
+]
+lint = [
+    "flake8>=7.3.0",
+    "black>=25.1.0",
+    "isort>=6.0.1",
+    "sqlfluff>=3.4.2",
+    "mypy>=1.18.2",
+]
+test = [
+    "coverage[toml]>=7.9.2",
+    "pytest>=8.4.1",
+    "pytest-cov>=6.2.1",
+    "pytest-timeout>=2.4.0",
+    "freezegun>=1.5.5",
+]
+
+[tool.pytest.ini_options]
+pythonpath = "src"
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)8s] %(message)s (%(filename)s:%(lineno)s)"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+
+[tool.coverage.run]
+branch = true
+source = ["src"]
+concurrency = ["thread", "multiprocessing"]
+omit = ["*/tests/*", "*/.venv/*", "*/.pixi/*"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 100
+
+[tool.black]
+line-length = 100
+target-version = ['py313']
+skip-string-normalization = true
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.venv
+  | \.pixi
+  | build
+  | dist
+  | migrations
+  | __pycache__
+  | .*\.min\.py
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+
+[tool.poetry]
+packages = [{ include = "$PIXI_PROJECT_NAME", from = "src" }]
+include = [
+    "src/$PIXI_PROJECT_NAME/**/*.json",
+    "src/$PIXI_PROJECT_NAME/**/*.sql",
+]
+
+[[tool.poetry.source]]
+name = "danieloliveira"
+url = "https://git.anatel.gov.br/api/v4/projects/1651/packages/pypi/simple"
+priority = "supplemental"
+
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+platforms = ["win-64"]
+
+[tool.pixi.tasks]
+test = "pixi run --environment test python -m pytest tests --cov"
+lint = "pixi run --environment test python -m flake8 src"
+start = "pixi run python src/$PIXI_PROJECT_NAME/main/app.py"
+
+[tool.pixi.pypi-dependencies]
+# dependências pypi
+
+[tool.pixi.pypi-options.dependency-overrides]
+# fonte de dependências self-hosted
+pyQlik = { version = "*", index = "https://git.anatel.gov.br/api/v4/projects/1651/packages/pypi/simple" }
+CPAE-Qlik = { version = "*", index = "https://git.anatel.gov.br/api/v4/projects/1651/packages/pypi/simple" }
+pdsharepoint = { version = "*", index = "https://git.anatel.gov.br/api/v4/projects/1651/packages/pypi/simple" }
+superlogger = { version = "*", index = "https://git.anatel.gov.br/api/v4/projects/1651/packages/pypi/simple" }
+
+[tool.pixi.environments]
+default = { solve-group = "default" }
+test = { features = ["test", "dev", "lint"], solve-group = "default" }
+
+[tool.pixi.dependencies]
+pynput = ">=1.8.2,<2"
+pyusb = ">=1.3.1,<2"
+libusb-package = ">=1.0.26.0,<2"
+
+
+[[tool.uv.index]]
+name = "danieloliveira"
+url = "https://git.anatel.gov.br/api/v4/projects/1651/packages/pypi/simple"
+default = true
+
+[[tool.uv.index]]
+url = "https://www.pypi.org/simple"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0", "hatchling"]
+build-backend = "poetry.core.masonry.api"
+# build-backend = "hatchling.build"

@@ -1,0 +1,33 @@
+[flake8]
+format = default
+# Tamanho máximo da linha (compatível com Black)
+max-line-length = 88
+
+# Ignorar regras específicas
+# E203: whitespace before ':', conflito com Black
+# W503: line break before binary operator, conflito com PEP8 moderno
+ignore =
+    E203,
+    W503,
+
+# Diretórios a serem excluídos da análise
+exclude =
+    .git,
+    __pycache__,
+    build,
+    dist,
+    .venv,
+    venv,
+    .mypy_cache,
+    .pytest_cache
+
+# Mostrar a contagem de erros
+count = true
+
+# Estatísticas detalhadas
+statistics = true
+
+# Relatório por arquivo
+# F401: ignorar imports não usados em __init__.py
+per-file-ignores =
+    __init__.py:F401
