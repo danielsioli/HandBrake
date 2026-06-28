@@ -134,8 +134,8 @@ void bootCalibration() {
 
     unsigned long startTime = millis();
 
-    calib.minValue = 550;
-    calib.maxValue = 500;
+    calib.minValue = 1023;
+    calib.maxValue = 0;
 
     while (millis() - startTime < CALIBRATION_TIME) {
         int val = smoothAnalogRead(PIN_HALL_SENSOR);
@@ -151,6 +151,9 @@ void bootCalibration() {
 // ================= SETUP =================
 
 void setup() {
+    Serial.begin(9600);
+    //analogReadResolution(10);
+
     pinMode(PIN_HALL_SENSOR, INPUT);
     // pinMode(PIN_BUTTON_0, INPUT_PULLUP);
     // pinMode(PIN_BUTTON_1, INPUT_PULLUP);
@@ -208,5 +211,8 @@ void loop() {
     joystick.setBrake(axisValue);
     //joystick.setSteering(axisValue);
     //Serial.println(axisValue);
+    //float voltage = hallValue * (5.0 / 1023.0);
+    //Serial.print(voltage);
+    //Serial.println(" V");
     delay(5);
 }
