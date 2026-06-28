@@ -54,7 +54,7 @@ int sampleIndex = 0;
 
 // Configurado como JOYSTICK sem eixo BRAKE
 Joystick_ joystick(JOYSTICK_DEFAULT_REPORT_ID, JOYSTICK_TYPE_JOYSTICK,
-  0,                    // Button count
+  1,                    // Button count
   0,                    // Hat Switch Count
   false, false, false,     // X Y Z
   false, false, false,  // Rx Ry Rz
@@ -155,7 +155,7 @@ void setup() {
     //analogReadResolution(10);
 
     pinMode(PIN_HALL_SENSOR, INPUT);
-    // pinMode(PIN_BUTTON_0, INPUT_PULLUP);
+    pinMode(PIN_BUTTON_0, INPUT_PULLUP);
     // pinMode(PIN_BUTTON_1, INPUT_PULLUP);
 
     loadCalibration();
@@ -185,8 +185,8 @@ void setup() {
 
 void loop() {
 
-    joystick.setButton(0, digitalRead(PIN_BUTTON_0)==LOW);
-    joystick.setButton(1, digitalRead(PIN_BUTTON_1)==LOW);
+    //joystick.setButton(0, digitalRead(PIN_BUTTON_0)==LOW);
+    //joystick.setButton(1, digitalRead(PIN_BUTTON_1)==LOW);
 
     int hallValue = smoothAnalogRead(PIN_HALL_SENSOR);
 
@@ -214,5 +214,10 @@ void loop() {
     //float voltage = hallValue * (5.0 / 1023.0);
     //Serial.print(voltage);
     //Serial.println(" V");
+    if (axisValue >= AXIS_RESOLUTION/3) {
+        joystick.setButton(0, true);
+    } else {
+        joystick.setButton(0, false);
+    }
     delay(5);
 }
